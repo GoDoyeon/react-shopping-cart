@@ -1,7 +1,13 @@
 import type { ProductResponseData } from '../../types/product'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faBookmark, faEye, faStar } from '@fortawesome/free-solid-svg-icons'
+import {
+	faBookmark,
+	faEye,
+	faStar,
+	faCartShopping,
+} from '@fortawesome/free-solid-svg-icons'
 import useBookmarkStore from '../../stores/useBookmarkStore'
+import useCartStore from '../../stores/useCartStore'
 
 type Props = {
 	product: ProductResponseData
@@ -9,58 +15,74 @@ type Props = {
 
 const ProductCard = ({ product }: Props) => {
 	const { bookmarkList, toggleBookmark } = useBookmarkStore()
+	const { addToCart } = useCartStore()
 
 	return (
 		<li
-			className="bg-gray-100 rounded-lg p-4 w-[14em] h-[15em] flex flex-col justify-between hover:shadow-lg transition-shadow duration-300"
+			className="bg-white rounded-lg p-4 w-[16em] h-[20em] flex flex-col shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100"
 			id={`card-${product.id}`}
 		>
-			<div className="flex justify-end p-2 rounded-t-lg">
-				<FontAwesomeIcon
-					icon={faBookmark}
-					className="cursor-pointer"
-					style={{
-						color: bookmarkList?.includes(product.id)
-							? 'var(--color-primary)'
-							: 'var(--color-gray300)',
-					}}
-					size="lg"
+			<div className="relative mb-3">
+				<button
 					onClick={() => toggleBookmark(product.id)}
-				/>
+					className="absolute top-3 right-3 z-10"
+				>
+					<FontAwesomeIcon
+						icon={faBookmark}
+						style={{
+							color: bookmarkList?.includes(product.id)
+								? 'var(--color-primary)'
+								: 'var(--color-gray-400)',
+						}}
+					/>
+				</button>
+
+				<div className="h-[10em] flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden">
+					<img
+						src={product.image}
+						alt={product.title}
+						className="w-full h-full object-contain p-2"
+					/>
+				</div>
 			</div>
-			<div className="h-[8em] mb-2">
-				<img
-					src={product.image}
-					alt={product.title}
-					className="w-full h-full object-contain"
-				/>
-			</div>
+
 			<div className="flex flex-col justify-between">
-				<span className="text-sm text-start text-ellipsis overflow-hidden whitespace-nowrap">
+				<div className="text-sm text-start text-ellipsis overflow-hidden whitespace-nowrap mb-3">
 					{product.title}
-				</span>
-				{/* <button className="primary-button">장바구니 담기</button> */}
-				<div className="flex justify-between items-center">
-					<div className="text-md font-bold">{product.price} $</div>
-					<div className="flex gap-2">
-						<div className="flex items-center gap-1">
-							<FontAwesomeIcon
-								icon={faEye}
-								className="text-gray-500"
-								size="sm"
-							/>
-							<span className="text-sm">{product.rating.count}</span>
-						</div>
+				</div>
+
+				<div className="flex justify-between items-center mb-3">
+					<div className="text-lg font-bold text-primary-700">
+						${product.price}
+					</div>
+
+					<div className="flex gap-3 text-xs text-gray-600">
 						<div className="flex items-center gap-1">
 							<FontAwesomeIcon
 								icon={faStar}
-								className="text-gray-500"
+								className="text-yellow-400"
 								size="sm"
 							/>
-							<span className="text-sm">{product.rating.rate}</span>
+							<span>{product.rating.rate}</span>
+						</div>
+						<div className="flex items-center gap-1">
+							<FontAwesomeIcon
+								icon={faEye}
+								className="text-gray-400"
+								size="sm"
+							/>
+							<span>{product.rating.count}</span>
 						</div>
 					</div>
 				</div>
+
+				<button
+					onClick={() => addToCart(product)}
+					className="w-full bg-primary text-white rounded-lg py-2 px-4 flex items-center justify-center gap-2 font-medium"
+				>
+					<FontAwesomeIcon icon={faCartShopping} size="sm" />
+					장바구니 담기
+				</button>
 			</div>
 		</li>
 	)
