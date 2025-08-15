@@ -1,10 +1,8 @@
-import React from 'react'
-
 const Header = () => {
 	return (
-		<div className="flex justify-between p-4 bg-gray-100">
-			<h1 className="text-2xl font-bold">Shopping Mall</h1>
-		</div>
+		<header className="fixed top-0 inset-x-0 z-50 w-full bg-gray-100 flex justify-between p-4">
+			<h2 className="text-xl font-bold">Shopping Mall</h2>
+		</header>
 	)
 }
 
