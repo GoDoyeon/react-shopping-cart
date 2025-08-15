@@ -4,24 +4,58 @@ import type { ProductResponseData } from '../types/product'
 import ProductCard from '../components/product/ProductCard'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSearch, faRotateLeft } from '@fortawesome/free-solid-svg-icons'
+import useBookmarkStore from '../stores/useBookmarkStore'
 
 const Products = () => {
 	const [products, setProducts] = useState<ProductResponseData[]>([])
 	const [searchValue, setSearchValue] = useState('')
 	const [category, setCategory] = useState('')
+	const [originalProducts, setOriginalProducts] = useState<
+		ProductResponseData[]
+	>([])
+	const { bookmarkList } = useBookmarkStore()
+
 	const fetchProducts = async () => {
 		try {
 			const res = await getProducts()
 			setProducts(res)
+			setOriginalProducts(res)
 		} catch (error) {
 			console.error('상품 목록 불러오기 실패:', error)
 		}
 	}
 
+	const sortByBookmark = (productList: ProductResponseData[]) => {
+		return [...productList].sort((a, b) => {
+			const aIsBookmarked = bookmarkList.includes(a.id)
+			const bIsBookmarked = bookmarkList.includes(b.id)
+
+			if (aIsBookmarked && !bIsBookmarked) return -1
+			if (!aIsBookmarked && bIsBookmarked) return 1
+			return 0
+		})
+	}
+
+	const sortByCategory = (productList: ProductResponseData[]) => {
+		const sorted = [...productList]
+
+		if (category === 'recommend') {
+			sorted.sort((a, b) => a.id - b.id)
+		} else if (category === 'rating') {
+			sorted.sort((a, b) => b.rating.rate - a.rating.rate)
+		} else if (category === 'views') {
+			sorted.sort((a, b) => b.rating.count - a.rating.count)
+		}
+
+		return sorted
+	}
+
 	const handleSearch = () => {
-		setProducts(
-			products.filter((product) => product.title.includes(searchValue))
+		const filteredProducts = originalProducts.filter((product) =>
+			product.title.includes(searchValue)
 		)
+		const categorySorted = sortByCategory(filteredProducts)
+		setProducts(sortByBookmark(categorySorted))
 	}
 
 	const handleReset = () => {
@@ -32,18 +66,21 @@ const Products = () => {
 	const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		const value = e.target.value
 		setCategory(value)
-		if (value === 'recommend') {
-			setProducts(products.sort((a, b) => a.id - b.id))
-		} else if (value === 'rating') {
-			setProducts(products.sort((a, b) => b.rating.rate - a.rating.rate))
-		} else if (value === 'views') {
-			setProducts(products.sort((a, b) => b.rating.count - a.rating.count))
-		}
+
+		const categorySorted = sortByCategory(originalProducts)
+		setProducts(sortByBookmark(categorySorted))
 	}
 
 	useEffect(() => {
 		fetchProducts()
 	}, [])
+
+	useEffect(() => {
+		if (products.length > 0) {
+			const categorySorted = sortByCategory(originalProducts)
+			setProducts(sortByBookmark(categorySorted))
+		}
+	}, [bookmarkList, category, originalProducts])
 
 	return (
 		<div className="p-4">
