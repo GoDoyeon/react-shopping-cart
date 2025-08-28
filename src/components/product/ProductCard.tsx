@@ -8,6 +8,9 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import useBookmarkStore from '../../stores/useBookmarkStore'
 import useCartStore from '../../stores/useCartStore'
+import { useCallback, useMemo } from 'react'
+import { toast } from 'react-hot-toast'
+import { useNavigate } from 'react-router-dom'
 
 type Props = {
 	product: ProductResponseData
@@ -15,20 +18,39 @@ type Props = {
 
 const ProductCard = ({ product }: Props) => {
 	const { bookmarkList, toggleBookmark } = useBookmarkStore()
-	const { addToCart } = useCartStore()
+	const { addToCart, cartList } = useCartStore()
+	const navigate = useNavigate()
+
+	const isInCart = useMemo(() => {
+		return cartList.some((item) => item.id === product.id)
+	}, [cartList, product.id])
+
+	const handleAddToCart = useCallback(() => {
+		if (isInCart) {
+			navigate('/cart')
+		} else {
+			addToCart(product)
+			toast.success('장바구니에 상품이 추가되었습니다!')
+		}
+	}, [product, addToCart, navigate, isInCart])
 
 	return (
 		<li
-			className="bg-white rounded-lg p-4 w-[16em] h-[20em] flex flex-col shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100"
+			className="bg-white rounded-lg p-4 flex flex-col shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100"
 			id={`card-${product.id}`}
 		>
 			<div className="relative mb-3">
 				<button
 					onClick={() => toggleBookmark(product.id)}
-					className="absolute top-3 right-3 z-10"
+					className="absolute top-3 right-3 z-10 transition-all duration-300 ease-in-out hover:scale-110 active:scale-95"
 				>
 					<FontAwesomeIcon
 						icon={faBookmark}
+						className={`transition-all duration-300 ease-in-out ${
+							bookmarkList?.includes(product.id)
+								? 'text-primary scale-110 drop-shadow-lg'
+								: 'text-gray-400 hover:text-gray-600'
+						}`}
 						style={{
 							color: bookmarkList?.includes(product.id)
 								? 'var(--color-primary)'
@@ -77,11 +99,11 @@ const ProductCard = ({ product }: Props) => {
 				</div>
 
 				<button
-					onClick={() => addToCart(product)}
+					onClick={handleAddToCart}
 					className="w-full bg-primary text-white rounded-lg py-2 px-4 flex items-center justify-center gap-2 font-medium"
 				>
 					<FontAwesomeIcon icon={faCartShopping} size="sm" />
-					장바구니 담기
+					{isInCart ? '장바구니 이동' : '장바구니 담기'}
 				</button>
 			</div>
 		</li>
