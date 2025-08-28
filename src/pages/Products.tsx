@@ -5,9 +5,12 @@ import ProductCard from '../components/product/ProductCard'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSearch, faRotateLeft } from '@fortawesome/free-solid-svg-icons'
 import useBookmarkStore from '../stores/useBookmarkStore'
+import CommonLayout from '../components/layout/CommonLayout'
 
 const Products = () => {
 	const [products, setProducts] = useState<ProductResponseData[]>([])
+	const [loading, setLoading] = useState(true)
+
 	const [searchValue, setSearchValue] = useState('')
 	const [category, setCategory] = useState('')
 	const [originalProducts, setOriginalProducts] = useState<
@@ -82,8 +85,24 @@ const Products = () => {
 		}
 	}, [bookmarkList, category, originalProducts])
 
+	useEffect(() => {
+		const fetchProducts = async () => {
+			try {
+				setLoading(true) // 로딩 시작
+				const data = await getProducts()
+				setProducts(data)
+			} catch (error) {
+				console.error('상품을 불러오는데 실패했습니다:', error)
+			} finally {
+				setLoading(false) // 로딩 완료
+			}
+		}
+
+		fetchProducts()
+	}, [])
+
 	return (
-		<div className="p-4">
+		<CommonLayout title="상품 목록" description="다양한 상품들을 둘러보세요">
 			<div className="flex gap-4 mb-4 justify-between">
 				<div className="flex gap-2">
 					<input
@@ -112,20 +131,31 @@ const Products = () => {
 					<option value="views">조회순</option>
 				</select>
 			</div>
-			<div className="flex justify-center">
-				{products.length === 0 ? (
-					<div className="text-center text-gray-500 w-[40em] h-[30em] flex items-center justify-center">
-						<p>상품이 없습니다.</p>
+			<div className="">
+				{loading ? (
+					<div className="flex items-center justify-center h-full ">
+						<div className="flex flex-col items-center gap-4 w-full">
+							<div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+							<p className="text-gray-600 text-lg">상품을 불러오는 중...</p>
+						</div>
 					</div>
 				) : (
-					<ol className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-						{products.map((product) => (
-							<ProductCard key={product.id} product={product} />
-						))}
-					</ol>
+					<div className="flex justify-center">
+						{products.length === 0 ? (
+							<div className="text-center text-gray-500 w-full py-16">
+								<p>상품이 없습니다.</p>
+							</div>
+						) : (
+							<ol className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+								{products.map((product) => (
+									<ProductCard key={product.id} product={product} />
+								))}
+							</ol>
+						)}
+					</div>
 				)}
 			</div>
-		</div>
+		</CommonLayout>
 	)
 }
 
